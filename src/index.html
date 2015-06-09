@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>video visualiser</title>
+        <link rel="stylesheet" href="style.css"/>
+        <script src="player.js"></script>
+        <script src="uploader.js"></script>
+    </head>
+    <body>
+        <video></video>
+        <div id="dropzone"></div>
+        <script>
+            var video = document.getElementsByTagName("video")[0];
+            var dropezone = document.getElementById('dropzone');
+            var FPS = 30000/1001;
+            var player = new Player(video, FPS);
+            var uploader = new Uploader(dropzone, setPlayMode)
+
+            function setPlayMode(src){
+                document.body.classList.add("playMode");
+                player.setSource(src);
+            }
+            
+            window.addEventListener("keydown", function(evt) {
+                if (video.currentTime <= 0 && 
+                    video.currentTime >= video.duration){
+                    return;
+                }
+                if (evt.keyCode === 37) player.seekFrames(-1);
+                if (evt.keyCode === 39) player.seekFrames(1);
+                if (evt.keyCode === 38) player.seekFrames(-Math.round(FPS));
+                if (evt.keyCode === 40) player.seekFrames(Math.round(FPS));
+            })
+        </script>
+    </body>
+</html>

@@ -1,0 +1,30 @@
+video,
+canvas {
+   position: absolute;
+   top: 0;
+   width:1280px;
+   height:720px;
+   left:1280px;
+   display:block;
+}
+
+body.playMode video,
+body.playMode canvas {
+    left:0;
+    display:block;
+}
+
+#dropzone {
+    border: 10px dashed #ccc;
+    width: 300px;
+    min-height: 300px;
+    margin: 200px auto;
+}
+
+#dropzone.hover {
+    border: 10px dashed #0c0;
+}
+
+body.playMode #dropzone {
+    display:none;
+}
