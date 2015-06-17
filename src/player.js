@@ -1,6 +1,9 @@
-function Player(videoElm, fps){
-    this.fps = fps;
+function Player(videoElm){
     this.video = videoElm;
+    this.mediaSource = new MediaSource();
+    this.mediaSource.queue = [];
+    this.video.src = window.URL.createObjectURL(this.mediaSource);
+    this.fps = 0;
 
     // update workaround
     var canvas = document.createElement("canvas");
@@ -16,6 +19,45 @@ function Player(videoElm, fps){
     window.requestAnimationFrame(forceVideoUpdate);
 }
 
+
+Player.prototype.init = function(buffer){
+    buffer.fileStart = 0;
+    var mp4box = new MP4Box();
+    var self = this;
+    mp4box.onReady = function(info) {
+        self.fps = window.fps;
+        document.body.classList.add("playMode");
+        this.setSegmentOptions(1, null, { nbSamples: 10, rapAlignement: true } );
+        self.mediaSource.buffer = self.mediaSource.addSourceBuffer('video/mp4; codecs=\"'+info.tracks[0].codec+'\"');
+        self.mediaSource.buffer.addEventListener("updateend", function(){ player.nextChunk(); });
+        mp4box.onSegment = function (id, sb, buffer) { self.appendBuffer(buffer); }
+        self.appendBuffer(this.initializeSegmentation()[0].buffer);
+    }
+    mp4box.appendBuffer(buffer);
+    mp4box.flush();
+}
+
+
+Player.prototype.appendBuffer = function(buffer){
+   console.log("append")
+   if (this.mediaSource.buffer.updating) {
+        this.mediaSource.queue.push(buffer);
+        if (this.mediaSource.buffer.updating) return
+    }
+    
+    if (this.mediaSource.queue.length == 0) {
+        this.mediaSource.queue.push(buffer);
+        this.nextChunk(buffer)
+    }
+}
+
+Player.prototype.nextChunk = function(){
+        console.log("next")
+        if (this.mediaSource.queue.length > 0) {
+            this.mediaSource.buffer.appendBuffer(this.mediaSource.queue.shift())
+        }
+}
+
 Player.prototype.secondsToTimecode = function(time){
     var hours = Math.floor(time / 3600) % 24;
     var minutes = Math.floor(time / 60) % 60;
@@ -26,10 +68,6 @@ Player.prototype.secondsToTimecode = function(time){
     ":" + (seconds < 10 ? "0" + seconds : seconds) +
     ":" + (frames < 10 ? "0" + frames : frames);
     return result;    
-}
-
-Player.prototype.setSource = function(src) {
-    this.video.src = src;
 }
 
 Player.prototype.seekFrames = function(frames) {
