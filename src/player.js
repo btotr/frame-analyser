@@ -1,8 +1,5 @@
 function Player(videoElm){
     this.video = videoElm;
-    this.mediaSource = new MediaSource();
-    this.mediaSource.queue = [];
-    this.video.src = window.URL.createObjectURL(this.mediaSource);
     this.fps = 0;
 
     // update workaround
@@ -19,43 +16,20 @@ function Player(videoElm){
     window.requestAnimationFrame(forceVideoUpdate);
 }
 
-
 Player.prototype.init = function(buffer){
-    buffer.fileStart = 0;
-    var mp4box = new MP4Box();
     var self = this;
-    mp4box.onReady = function(info) {
-        self.fps = window.fps;
+    var demuxer = new TSDemuxer()
+    demuxer.process(new Uint8Array(buffer)).then(function(packet_data){
         document.body.classList.add("playMode");
-        this.setSegmentOptions(1, null, { nbSamples: 10, rapAlignement: true } );
-        self.mediaSource.buffer = self.mediaSource.addSourceBuffer('video/mp4; codecs=\"'+info.tracks[0].codec+'\"');
-        self.mediaSource.buffer.addEventListener("updateend", function(){ player.nextChunk(); });
-        mp4box.onSegment = function (id, sb, buffer) { self.appendBuffer(buffer); }
-        self.appendBuffer(this.initializeSegmentation()[0].buffer);
-    }
-    mp4box.appendBuffer(buffer);
-    mp4box.flush();
-}
-
-
-Player.prototype.appendBuffer = function(buffer){
-   console.log("append")
-   if (this.mediaSource.buffer.updating) {
-        this.mediaSource.queue.push(buffer);
-        if (this.mediaSource.buffer.updating) return
-    }
-    
-    if (this.mediaSource.queue.length == 0) {
-        this.mediaSource.queue.push(buffer);
-        this.nextChunk(buffer)
-    }
-}
-
-Player.prototype.nextChunk = function(){
-        console.log("next")
-        if (this.mediaSource.queue.length > 0) {
-            this.mediaSource.buffer.appendBuffer(this.mediaSource.queue.shift())
-        }
+        var videoInfo = video_data(packet_data.streams[224].packets);
+        var vuiParameters = videoInfo.spsInfo.vui_parameters;
+        self.fps = vuiParameters.time_scale / (2*vuiParameters.num_units_in_tick);
+        var reader = new FileReader();
+        reader.onload = function (event) {
+            self.video.src = event.target.result
+        };
+        reader.readAsDataURL(MP4([videoInfo]));
+    })
 }
 
 Player.prototype.secondsToTimecode = function(time){
