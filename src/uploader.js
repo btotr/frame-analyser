@@ -1,7 +1,8 @@
 function Uploader(holder, update){
     holder.ondragover = function () { this.className = 'hover'; return false; };
-    holder.ondragend = function () { this.className = ''; return false; };
+    holder.dragend = function () { console.log("test"); this.className = ''; return false; };
     holder.ondrop = function (e) {
+        document.body.classList.add("playMode");
         e.preventDefault();
         this.readfiles(e.dataTransfer.files, update);
     }.bind(this)

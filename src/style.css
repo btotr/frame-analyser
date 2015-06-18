@@ -15,14 +15,23 @@ body.playMode canvas {
 }
 
 #dropzone {
+    display: flex;
     border: 10px dashed #ccc;
-    width: 300px;
-    min-height: 300px;
+    width: 240px;
+    min-height: 240px;
     margin: 200px auto;
+    padding:40px;
+    text-align:center;
+    font-size:32px;
+    color:#ccc;
+    font-family:helvetica, sans-serif;
+    align-items: center;
+    justify-content: center;
 }
 
 #dropzone.hover {
     border: 10px dashed #0c0;
+    color:#0c0;
 }
 
 body.playMode #dropzone {

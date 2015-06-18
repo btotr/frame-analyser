@@ -18,9 +18,8 @@ function Player(videoElm){
 
 Player.prototype.init = function(buffer){
     var self = this;
-    var demuxer = new TSDemuxer()
+    var demuxer = new TSDemuxer();
     demuxer.process(new Uint8Array(buffer)).then(function(packet_data){
-        document.body.classList.add("playMode");
         var videoInfo = video_data(packet_data.streams[224].packets);
         var vuiParameters = videoInfo.spsInfo.vui_parameters;
         self.fps = vuiParameters.time_scale / (2*vuiParameters.num_units_in_tick);
