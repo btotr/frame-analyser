@@ -260,7 +260,8 @@ var TSDemuxer = (function(){
 				if(len<6){ return -20; }
 
 				if(mem.getUint16(ptr) !== 0 || mem.getUint8(ptr+2) !== 1){
-					return -21;
+					// TODO ?
+					return 0; //-21
 				}
 				
 				stream_id=mem.getUint8(ptr+3);
