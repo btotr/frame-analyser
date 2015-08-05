@@ -10,11 +10,27 @@ function Uploader(holder, update){
 }
 
 Uploader.prototype.readfiles = function(files, update) {
-    var file = files[0];
-    console.log('Uploaded ' + file.name + ' ' + (file.size ? (file.size/1024|0) + 'K' : ''));
+    var ts;
+    var images = [];
+    
+    for (var i=0, l=files.length;i<l;i++){
+        var file = files[i];
+        if (file.type == "image/png" || file.type == "image/bpm") {
+            images.push(file);
+            continue;
+        }
+        // otherwise ts (no file type)
+        ts = file;
+    }
+    if (!ts){
+        update(null, images);
+        return;
+    }
+    
+    console.log('Uploaded ' + ts.name + ' ' + (ts.size ? (ts.size/1024|0) + 'K' : ''));
     var reader = new FileReader();
     reader.onload = function (event) {
-        update(event.target.result)
+        update(event.target.result, images);
     };
-    reader.readAsArrayBuffer(file);
+    reader.readAsArrayBuffer(ts);
 }

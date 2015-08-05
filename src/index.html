@@ -8,6 +8,7 @@
         <script src="MP4Muxer.js"></script>
         <script src="TSDemuxer.js"></script>
         <script src="player.js"></script>
+        <script src="overlay.js"></script>
         <script src="uploader.js"></script>
     </head>
     <body>
@@ -16,8 +17,8 @@
         <script>
             var video = document.getElementsByTagName("video")[0];
             var dropzone = document.getElementById('dropzone');
-            var player = new Player(video);
-            var uploader = new Uploader(dropzone, player.init.bind(player))
+            var player = new OverlayPlayer(video);
+            var uploader = new Uploader(dropzone, player.create.bind(player))
 
             window.addEventListener("keydown", function(evt) {
                 if (video.currentTime <= 0 && 
