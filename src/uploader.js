@@ -15,7 +15,7 @@ Uploader.prototype.readfiles = function(files, update) {
     
     for (var i=0, l=files.length;i<l;i++){
         var file = files[i];
-        if (file.type == "image/png" || file.type == "image/bpm") {
+        if (file.type == "image/png" || file.type == "image/bmp") {
             images.push(file);
             continue;
         }

@@ -30,10 +30,17 @@ function OverlayPlayer(videoElm){
     document.body.appendChild(this.canvas);
     this.context = this.canvas.getContext('2d');
     
+        // add canvas
+    this.canvasDebug = document.createElement("canvas");
+    this.canvasDebug.setAttribute("width", 1280);
+    this.canvasDebug.setAttribute("height", 720);
+    document.body.appendChild(this.canvasDebug);
+    this.contextDebug = this.canvasDebug.getContext('2d');
     
-    // reset framebuffer on first update
-    this.video.addEventListener("timeupdate", function(){
-        if(this.video.currentTime == 0) {
+    
+    // reset framebuffer on r key
+    window.addEventListener("keydown", function(e){
+        if(e.keyCode == "82") {
             console.log("reset framebuffer");
             this.frameBuffer = [];
             this.context.clearRect(0,0, 1280, 720);    
@@ -44,10 +51,18 @@ function OverlayPlayer(videoElm){
     var cueIndex = 0;
     function checkCue() {
         if(this.video.textTracks[0]){
-            var cue = this.video.textTracks[0].cues[cueIndex];
-            if (cue.startTime <= this.video.currentTime && cue.endTime >= this.video.currentTime) {
-                this.renderOverlay(this.getOverlay(parseInt(cue.text)));
-                cueIndex++
+            if (this.video.textTracks[0].cues.length > 0) {
+                var cue = this.video.textTracks[0].cues[cueIndex];
+                if (cue.startTime <= this.video.currentTime && cue.endTime >= this.video.currentTime) {
+                    this.renderOverlay(this.getOverlay(parseInt(cue.text)));
+                    if (this.video.textTracks[0].cues.length-1 > cueIndex)
+                    cueIndex++
+                } else {
+                    if (cue.endTime < this.video.currentTime) {
+                        if (this.video.textTracks[0].cues.length-1 > cueIndex)
+                        cueIndex++
+                    }
+                }
             }
         }
         if (this.video.paused == false) {
@@ -65,9 +80,6 @@ function OverlayPlayer(videoElm){
          }
         }.bind(this), false);
     }.bind(this))
-    
-    
-    
 }
 
 OverlayPlayer.prototype = Object.create(Player.prototype);
@@ -80,7 +92,9 @@ OverlayPlayer.prototype.create = function(buffer, images){
     var overlayCues = this.video.addTextTrack('metadata'); 
 
     // add overlays
+    console.log(images.length)
     for (var i=0, l=images.length;i<l;i++){
+        
         this.addOverlay(i, images[i]);
     }
     
@@ -113,7 +127,7 @@ OverlayPlayer.prototype.getOverlay = function(index) {
 
 OverlayPlayer.prototype.addOverlay = function(index, image) {
     var overlay = new Overlay();
-    var meta = image.name.match(/.*#([0-9].*)-UTC=(.*)-Flip=(.*)\ Clear=(.*)\ Rect=(.*)\ Alpha=(.*)\ Rects=(.*)\ Loc=([0-9].*)x([0-9].*)\ S/)
+    var meta = image.name.match(/.*#([0-9].*)-UTC=(.*)-Flip=(.*)\ Clear=(.*)\ Rect=(.*)\ Alpha=(.*)\ Rects=(.*)\ Loc=([0-9].*)x([0-9].*)\ Size=([0-9].*)x([0-9].*)\./)
     overlay.index = index;
     overlay.number = meta[1];
     overlay.UTC = meta[2];
@@ -124,6 +138,8 @@ OverlayPlayer.prototype.addOverlay = function(index, image) {
     overlay.rects = meta[7];
     overlay.x = meta[8];
     overlay.y = meta[9];
+    overlay.width = meta[10];
+    overlay.height = meta[11];
     
     this.cues[index] = overlay.UTC;
     this.overlays.push(overlay);
@@ -140,7 +156,8 @@ OverlayPlayer.prototype.renderOverlay = function(overlay) {
     var img = new Image();
     var self = this;
     img.onload = function() {
-        self.shadowBuffer.push({"image": this, "x": overlay.x, "y": overlay.y})
+
+        self.shadowBuffer.push({"image": this, "x": overlay.x, "y": overlay.y, "width": overlay.width, "height": overlay.height, "rect": overlay.rect})
         if (overlay.rect != overlay.rects) return
 
         if (overlay.clear == "true"){
@@ -149,11 +166,18 @@ OverlayPlayer.prototype.renderOverlay = function(overlay) {
         }
 
         if (overlay.flip == "true") {
-            console.log('flip')
-            self.context.clearRect(0,0, 1280, 720);
+            console.log('flip', "utc: " + overlay.UTC)
+            self.contextDebug.clearRect(0,0, 1280, 720);
             for (var i=0, l=self.shadowBuffer.length;i<l;i++){
-                var schadowBuffer = self.shadowBuffer[i]
+                var schadowBuffer = self.shadowBuffer[i];
+
+                self.context.clearRect(schadowBuffer.x, schadowBuffer.y, schadowBuffer.width, schadowBuffer.height);
+                
                 self.context.drawImage(schadowBuffer.image, schadowBuffer.x, schadowBuffer.y);
+                
+                self.contextDebug.strokeRect(schadowBuffer.x, schadowBuffer.y, schadowBuffer.width, schadowBuffer.height)
+                self.contextDebug.strokeStyle = "green"
+                self.contextDebug.lineWidth = 2
             }
             self.shadowBuffer = [];
         } 
