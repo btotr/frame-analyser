@@ -20,10 +20,10 @@ start the client and copy the capture to your local machine
 
 on your local machine install wireshark (with rfbtv plugin) and ffmpeg
 
-`sudo rm -rf /tmp/* && tshark -2 -R "tcp.port==8090" -r capture.pcap -T fields -e data | tr -d '\n' | perl -pe 's/([0-9a-f]{2})/chr hex $1/gie' | ffmpeg -i pipe:0 -loglevel panic  -map 0:0 -vcodec copy /tmp/cloudtv.ts`
+`sudo rm -rf /tmp/* && tshark -2 -Xlua_script:./rfbtv.lua -R "tcp.port==8090" -r capture2.pcap -T fields -e data | tr -d '\n' | perl -pe 's/([0-9a-f]{2})/chr hex $1/gie' | ffmpeg -i pipe:0 -loglevel panic  -map 0:0 -vcodec copy /tmp/cloudtv.ts`
 
 this will create some files in your /tmp folder
 
 select all and drop it in the analyser
 
-http://video-analyser-btotr.c9.io/
+http://video-analyser-btotr.c9.io/ or https://cryptic-reaches-8081.herokuapp.com/

@@ -76,6 +76,7 @@ function OverlayPlayer(videoElm){
     this.video.addEventListener("pause",function(){
         this.video.textTracks[0].addEventListener("cuechange", function (e) {
          for (var i=0, l=e.currentTarget.activeCues.length;i<l;i++){
+             // FIXME only send new cues (doesn't hurt rendering)
              this.renderOverlay(this.getOverlay(parseInt(e.currentTarget.activeCues[i].text)));
          }
         }.bind(this), false);
